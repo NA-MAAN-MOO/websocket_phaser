@@ -1,8 +1,8 @@
 // Create a config file for the game
 const config = {
     type: Phaser.AUTO,
-    height: 600,
-    width: 1200,
+    height: 374,
+    width: 747,
     physics: {
         default: "arcade",
         arcade: {

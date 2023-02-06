@@ -28,4 +28,57 @@ wsServer.on("request", (request) => {
     const connection = request.accept(null, request.origin);
 
     connection.on("close", () => console.log("A connection has closed."));
+
+    connection.on("message", (message) => {
+        const result = JSON.parse(message.utf8Data);
+
+        if (result.method === "currentPlayers") {
+            players.forEach((player) => {
+                if (player.playerId !== playerId) {
+                    const payLoad = {
+                        method: "currentPlayers",
+                        playerId: player.playerId,
+                        x: player.x,
+                        y: player.y,
+                    };
+                    connection.send(JSON.stringify(payLoad));
+                }
+            });
+        }
+    });
+
+    const playerId = gpId();
+    const x = randomX();
+    const y = randomY();
+    let playerInfo = {
+        connection: connection,
+        playerId: playerId,
+        x: x,
+        y: y,
+    };
+
+    // The payload to be sent back to the client
+    const payLoad = {
+        method: "connect",
+        playerId: playerId,
+        x: x,
+        y: y,
+    };
+    // Send back the payload to the client and set its initial position
+    connection.send(JSON.stringify(payLoad));
+    players.push(playerInfo);
 });
+
+// 서버에 들어오는 유저에게 id 값좌 좌표값 할당
+function gpId() {
+    return (
+        Math.floor(Math.random() + 100) * Math.floor(Math.random() * 100) +
+        Math.floor(Math.random() * 100)
+    );
+}
+function randomX() {
+    return Math.floor(Math.random() * 700) + 35;
+}
+function randomY() {
+    return Math.floor(Math.random() * 300) + 50;
+}
