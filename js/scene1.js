@@ -4,21 +4,29 @@ class Scene1 extends Phaser.Scene {
     }
 
     init() {
+        // socket-io와 링크 스타~트!
+        this.socket = io();
+
         this.playerId = null;
         this.x = null;
         this.y = null;
-        let HOST = location.origin.replace(/^http/, "ws");
-        this.ws = new WebSocket(HOST);
-        // this.ws = new WebSocket("ws://localhost:9090"); // 웹소캣 객체 생성
-        this.ws.onmessage = (message) => {
-            const response = JSON.parse(message.data);
+        this.socket.on("start", (payLoad) => {
+            this.playerId = payLoad.playerId;
+            this.x = payLoad.x;
+            this.y = payLoad.y;
+        });
+        // let HOST = location.origin.replace(/^http/, "ws");
+        // this.ws = new WebSocket(HOST);
+        // // this.ws = new WebSocket("ws://localhost:9090"); // 웹소캣 객체 생성
+        // this.ws.onmessage = (message) => {
+        //     const response = JSON.parse(message.data);
 
-            if (response.method === "connect") {
-                this.playerId = response.playerId;
-                this.x = response.x;
-                this.y = response.y;
-            }
-        };
+        //     if (response.method === "connect") {
+        //         this.playerId = response.playerId;
+        //         this.x = response.x;
+        //         this.y = response.y;
+        //     }
+        // };
     }
 
     preload() {
@@ -97,40 +105,40 @@ class Scene1 extends Phaser.Scene {
         const payLoad = {
             method: "currentPlayers",
         };
-        this.ws.send(JSON.stringify(payLoad));
+        // this.ws.send(JSON.stringify(payLoad));
 
-        this.ws.onmessage = (message) => {
-            const response = JSON.parse(message.data);
+        // this.ws.onmessage = (message) => {
+        //     const response = JSON.parse(message.data);
 
-            if (response.method === "currentPlayers") {
-                const playerId = response.playerId;
-                const x = response.x;
-                const y = response.y;
-                this.addOtherPlayers({ x: x, y: y, playerId: playerId });
-            }
+        //     if (response.method === "currentPlayers") {
+        //         const playerId = response.playerId;
+        //         const x = response.x;
+        //         const y = response.y;
+        //         this.addOtherPlayers({ x: x, y: y, playerId: playerId });
+        //     }
 
-            if (response.method === "newPlayer") {
-                console.log(response.playerId);
-                this.addOtherPlayers({
-                    x: response.x,
-                    y: response.y,
-                    playerId: response.playerId,
-                });
-            }
+        //     if (response.method === "newPlayer") {
+        //         console.log(response.playerId);
+        //         this.addOtherPlayers({
+        //             x: response.x,
+        //             y: response.y,
+        //             playerId: response.playerId,
+        //         });
+        //     }
 
-            if (response.method === "disconnect") {
-                this.removePlayer(response.playerId);
-            }
+        //     if (response.method === "disconnect") {
+        //         this.removePlayer(response.playerId);
+        //     }
 
-            if (response.method === "updateLocation") {
-                this.updateLocation({
-                    x: response.x,
-                    y: response.y,
-                    playerId: response.playerId,
-                    currentFacing: response.currentFacing,
-                });
-            }
-        };
+        //     if (response.method === "updateLocation") {
+        //         this.updateLocation({
+        //             x: response.x,
+        //             y: response.y,
+        //             playerId: response.playerId,
+        //             currentFacing: response.currentFacing,
+        //         });
+        //     }
+        // };
 
         this.cursors = this.input.keyboard.createCursorKeys();
     }
@@ -147,7 +155,7 @@ class Scene1 extends Phaser.Scene {
                 y: this.player.y,
                 currentFacing: this.currentFacing,
             };
-            this.ws.send(JSON.stringify(payLoad));
+            // this.ws.send(JSON.stringify(payLoad));
         } else if (this.cursors.left.isDown) {
             this.player.anims.play("left", true);
             this.player.body.setVelocityX(-300);
@@ -159,7 +167,7 @@ class Scene1 extends Phaser.Scene {
                 y: this.player.y,
                 currentFacing: this.currentFacing,
             };
-            this.ws.send(JSON.stringify(payLoad));
+            // this.ws.send(JSON.stringify(payLoad));
         } else if (this.cursors.up.isDown) {
             this.player.anims.play("up", true);
             this.player.body.setVelocityY(-300);
@@ -171,7 +179,7 @@ class Scene1 extends Phaser.Scene {
                 y: this.player.y,
                 currentFacing: this.currentFacing,
             };
-            this.ws.send(JSON.stringify(payLoad));
+            // this.ws.send(JSON.stringify(payLoad));
         } else if (this.cursors.down.isDown) {
             this.player.anims.play("down", true);
             this.player.body.setVelocityY(300);
@@ -183,7 +191,7 @@ class Scene1 extends Phaser.Scene {
                 y: this.player.y,
                 currentFacing: this.currentFacing,
             };
-            this.ws.send(JSON.stringify(payLoad));
+            // this.ws.send(JSON.stringify(payLoad));
         } else {
             this.player.body.setVelocity(0);
         }
