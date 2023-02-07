@@ -3,13 +3,20 @@ class Scene1 extends Phaser.Scene {
         super("scene_1");
     }
 
-    init() {
+    // init() {}
+
+    preload() {
+        // load
+        this.load.image("bg", "assets/background.png");
+        this.load.spritesheet("character", "assets/character.png", {
+            frameWidth: 32,
+            frameHeight: 48,
+        });
         this.playerId = null;
         this.x = null;
         this.y = null;
         let HOST = location.origin.replace(/^http/, "ws");
         this.ws = new WebSocket(HOST);
-        console.log(HOST, this.ws);
         // this.ws = new WebSocket("ws://localhost:9090"); // 웹소캣 객체 생성
         this.ws.onmessage = (message) => {
             const response = JSON.parse(message.data);
@@ -20,15 +27,6 @@ class Scene1 extends Phaser.Scene {
                 this.y = response.y;
             }
         };
-    }
-
-    preload() {
-        // load
-        this.load.image("bg", "assets/background.png");
-        this.load.spritesheet("character", "assets/character.png", {
-            frameWidth: 32,
-            frameHeight: 48,
-        });
     }
 
     create() {
@@ -98,7 +96,6 @@ class Scene1 extends Phaser.Scene {
         const payLoad = {
             method: "currentPlayers",
         };
-
         this.ws.send(JSON.stringify(payLoad));
 
         this.ws.onmessage = (message) => {
