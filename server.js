@@ -8,13 +8,15 @@ app.use("/js", express.static(__dirname + "/js"));
 app.use("/assets", express.static(__dirname + "/assets"));
 app.get("/", (req, res) => res.sendFile(__dirname + "/index.html"));
 
-app.listen(5500, () => console.log("Client Port, listening.. on 5500"));
+let PORT = process.env.PORT || 5500;
+// app.listen(5500, () => console.log("Client Port, listening.. on 5500"));
 
 // The server will be on port 9090
 const websocketServer = require("websocket").server;
-const httpServer = http.createServer();
+const httpServer = http.createServer(app);
 
-httpServer.listen(9090, () => console.log("Server Port, listening.. on 9090"));
+// httpServer.listen(9090, () => console.log("Server Port, listening.. on 9090"));
+httpServer.listen(PORT);
 
 // Store a list of all the players
 let players = [];
@@ -22,12 +24,22 @@ let players = [];
 const wsServer = new websocketServer({
     httpServer: httpServer,
 });
-
 wsServer.on("request", (request) => {
     // A connection
     const connection = request.accept(null, request.origin);
 
-    connection.on("close", () => console.log("A connection has closed."));
+    connection.on("close", () => {
+        players.forEach((player) => {
+            if (player.playerId !== playerId) {
+                const payLoad = {
+                    method: "disconnect",
+                    playerId: playerId,
+                };
+                player.connection.send(JSON.stringify(payLoad));
+            }
+        });
+        players = players.filter((player) => player.playerId !== playerId);
+    });
 
     connection.on("message", (message) => {
         const result = JSON.parse(message.utf8Data);
@@ -42,6 +54,27 @@ wsServer.on("request", (request) => {
                         y: player.y,
                     };
                     connection.send(JSON.stringify(payLoad));
+                }
+            });
+        }
+
+        if (result.method === "movement") {
+            const playerId = result.playerId;
+            const x = result.x;
+            const y = result.y;
+            const payLoad = {
+                currentFacing: result.currentFacing,
+                method: "updateLocation",
+                playerId: playerId,
+                x: x,
+                y: y,
+            };
+            players.forEach((player) => {
+                if (player.playerId !== result.playerId) {
+                    player.connection.send(JSON.stringify(payLoad));
+                } else {
+                    player.x = x;
+                    player.y = y;
                 }
             });
         }
@@ -66,6 +99,18 @@ wsServer.on("request", (request) => {
     };
     // Send back the payload to the client and set its initial position
     connection.send(JSON.stringify(payLoad));
+
+    // Send back the payload to the client and set its initial position
+    players.forEach((player) => {
+        const payLoad = {
+            method: "newPlayer",
+            playerId: playerId,
+            x: x,
+            y: y,
+        };
+        player.connection.send(JSON.stringify(payLoad));
+    });
+
     players.push(playerInfo);
 });
 

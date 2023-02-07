@@ -7,7 +7,10 @@ class Scene1 extends Phaser.Scene {
         this.playerId = null;
         this.x = null;
         this.y = null;
-        this.ws = new WebSocket("ws://localhost:9090"); // 웹소캣 객체 생성
+        let HOST = location.origin.replace(/^http/, "ws");
+        console.log(HOST);
+        this.ws = new WebSocket(HOST);
+        // this.ws = new WebSocket("ws://localhost:9090"); // 웹소캣 객체 생성
         this.ws.onmessage = (message) => {
             const response = JSON.parse(message.data);
 
@@ -29,6 +32,15 @@ class Scene1 extends Phaser.Scene {
     }
 
     create() {
+        this.playerFacing = {
+            left: "LEFT",
+            right: "RIGHT",
+            up: "UP",
+            down: "DOWN",
+        };
+
+        this.currentFacing = this.playerFacing.down;
+
         // create
         this.add.image(0, 0, "bg").setOrigin(0, 0);
         // this.player = this.add.sprite(200, 200, "character"); // init() 에서 생성해주기 때문에 주석처리
@@ -87,7 +99,6 @@ class Scene1 extends Phaser.Scene {
             method: "currentPlayers",
         };
 
-        console.log("보냈다잉");
         this.ws.send(JSON.stringify(payLoad));
 
         this.ws.onmessage = (message) => {
@@ -99,6 +110,28 @@ class Scene1 extends Phaser.Scene {
                 const y = response.y;
                 this.addOtherPlayers({ x: x, y: y, playerId: playerId });
             }
+
+            if (response.method === "newPlayer") {
+                console.log(response.playerId);
+                this.addOtherPlayers({
+                    x: response.x,
+                    y: response.y,
+                    playerId: response.playerId,
+                });
+            }
+
+            if (response.method === "disconnect") {
+                this.removePlayer(response.playerId);
+            }
+
+            if (response.method === "updateLocation") {
+                this.updateLocation({
+                    x: response.x,
+                    y: response.y,
+                    playerId: response.playerId,
+                    currentFacing: response.currentFacing,
+                });
+            }
         };
 
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -108,15 +141,51 @@ class Scene1 extends Phaser.Scene {
         if (this.cursors.right.isDown) {
             this.player.anims.play("right", true);
             this.player.body.setVelocityX(300);
+            this.currentFacing = this.playerFacing.right;
+            const payLoad = {
+                method: "movement",
+                playerId: this.playerId,
+                x: this.player.x,
+                y: this.player.y,
+                currentFacing: this.currentFacing,
+            };
+            this.ws.send(JSON.stringify(payLoad));
         } else if (this.cursors.left.isDown) {
             this.player.anims.play("left", true);
             this.player.body.setVelocityX(-300);
+            this.currentFacing = this.playerFacing.left;
+            const payLoad = {
+                method: "movement",
+                playerId: this.playerId,
+                x: this.player.x,
+                y: this.player.y,
+                currentFacing: this.currentFacing,
+            };
+            this.ws.send(JSON.stringify(payLoad));
         } else if (this.cursors.up.isDown) {
             this.player.anims.play("up", true);
             this.player.body.setVelocityY(-300);
+            this.currentFacing = this.playerFacing.up;
+            const payLoad = {
+                method: "movement",
+                playerId: this.playerId,
+                x: this.player.x,
+                y: this.player.y,
+                currentFacing: this.currentFacing,
+            };
+            this.ws.send(JSON.stringify(payLoad));
         } else if (this.cursors.down.isDown) {
             this.player.anims.play("down", true);
             this.player.body.setVelocityY(300);
+            this.currentFacing = this.playerFacing.down;
+            const payLoad = {
+                method: "movement",
+                playerId: this.playerId,
+                x: this.player.x,
+                y: this.player.y,
+                currentFacing: this.currentFacing,
+            };
+            this.ws.send(JSON.stringify(payLoad));
         } else {
             this.player.body.setVelocity(0);
         }
@@ -135,5 +204,39 @@ class Scene1 extends Phaser.Scene {
         otherPlayer.setTint(Math.random() * 0xffffff);
         otherPlayer.playerId = playerInfo.playerId;
         this.otherPlayers.add(otherPlayer);
+    }
+
+    removePlayer(playerId) {
+        this.otherPlayers.getChildren().forEach((player) => {
+            if (player.playerId === playerId) {
+                player.destroy();
+            }
+        });
+    }
+
+    updateLocation(playerInfo) {
+        this.otherPlayers.getChildren().forEach((player) => {
+            console.log(player.playerId);
+            if (player.playerId === playerInfo.playerId) {
+                switch (playerInfo.currentFacing) {
+                    case "LEFT":
+                        player.anims.play("left", true);
+                        player.setPosition(playerInfo.x, playerInfo.y);
+                        break;
+                    case "RIGHT":
+                        player.anims.play("right", true);
+                        player.setPosition(playerInfo.x, playerInfo.y);
+                        break;
+                    case "UP":
+                        player.anims.play("up", true);
+                        player.setPosition(playerInfo.x, playerInfo.y);
+                        break;
+                    case "DOWN":
+                        player.anims.play("down", true);
+                        player.setPosition(playerInfo.x, playerInfo.y);
+                        break;
+                }
+            }
+        });
     }
 }
