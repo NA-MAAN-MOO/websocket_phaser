@@ -112,7 +112,7 @@ io.on("connection", (socket) => {
     });
 });
 
-httpServer.listen(3000);
+httpServer.listen(5500);
 
 // 서버에 들어오는 유저에게 id 값좌 좌표값 할당
 function gpId() {
