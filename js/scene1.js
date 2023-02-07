@@ -3,15 +3,7 @@ class Scene1 extends Phaser.Scene {
         super("scene_1");
     }
 
-    // init() {}
-
-    preload() {
-        // load
-        this.load.image("bg", "assets/background.png");
-        this.load.spritesheet("character", "assets/character.png", {
-            frameWidth: 32,
-            frameHeight: 48,
-        });
+    init() {
         this.playerId = null;
         this.x = null;
         this.y = null;
@@ -27,6 +19,15 @@ class Scene1 extends Phaser.Scene {
                 this.y = response.y;
             }
         };
+    }
+
+    preload() {
+        // load
+        this.load.image("bg", "assets/background.png");
+        this.load.spritesheet("character", "assets/character.png", {
+            frameWidth: 32,
+            frameHeight: 48,
+        });
     }
 
     create() {

@@ -1,6 +1,7 @@
+const express = require("express"); // Load in express module
+const app = express();
 const http = require("http"); // Load in http module
-const app = require("express")(); // Load in express module
-const express = require("express");
+const httpServer = http.createServer(app);
 
 // localhost:5500 is where the game page will be served
 // It will create a socket connect to 9090
@@ -13,7 +14,6 @@ let PORT = process.env.PORT || 5500;
 
 // The server will be on port 9090
 const websocketServer = require("websocket").server;
-const httpServer = http.createServer(app);
 
 // httpServer.listen(9090, () => console.log("Server Port, listening.. on 9090"));
 httpServer.listen(PORT);
