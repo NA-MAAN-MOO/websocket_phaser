@@ -99,7 +99,9 @@ class Scene1 extends Phaser.Scene {
             method: "currentPlayers",
         };
 
-        this.ws.send(JSON.stringify(payLoad));
+        this.ws.onopen = () => {
+            this.ws.send(JSON.stringify(payLoad));
+        };
 
         this.ws.onmessage = (message) => {
             const response = JSON.parse(message.data);
